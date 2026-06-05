@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "PyCANopenEditor"
+version = "0.1.0"
+description = "CANopen EDS editor - Python + PySide6 implementation"
+requires-python = ">=3.10"
+dependencies = [
+    "PySide6>=6.6",
+    "protobuf>=4.27",
+    "lxml>=5.0",
+    "google-api-python-client",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-qt>=4.0",
+]
+
+[project.scripts]
+pycanopen = "src.cli.main:main"
+pycanopen-gui = "src.gui.app:run_gui"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
