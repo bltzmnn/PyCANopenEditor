@@ -3,7 +3,7 @@
 外部 EDS 样本通过 `PYCANOPEN_TEST_EDS_DIR` 环境变量注入；未设置时
 相关 CLI 批量测试会通过 `pytest.skip` 自动跳过。
 
-`Tests/minimal_project.xdd` 为可选上游测试样本，未提供时仅 XDD 类
+`eds/minimal_project.xdd` 为可选上游测试样本，未提供时仅 XDD 类
 测试跳过，其它 CLI 测试仍可执行。
 """
 import os
@@ -13,7 +13,7 @@ from src.cli.main import main
 
 
 REPO_ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
-MINIMAL_XDD = os.path.join(REPO_ROOT, "Tests", "minimal_project.xdd")
+MINIMAL_XDD = os.path.join(REPO_ROOT, "eds", "minimal_project.xdd")
 
 
 @pytest.mark.skipif(not os.path.exists(MINIMAL_XDD), reason="minimal_project.xdd not found")

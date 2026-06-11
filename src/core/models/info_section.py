@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional
 
+from .od_entry import _get_base
+
 
 class Filetype(Enum):
     FILE_EDS = "eds"
@@ -309,14 +311,3 @@ class Module:
         self.mc = ModuleComments(_moduleindex=self.moduleindex)
         self.mse = ModuleSubExtends(_moduleindex=self.moduleindex)
         self.mxfo = MxFixedObjects(_moduleindex=self.moduleindex)
-
-
-def _get_base(value: str) -> int:
-    import re
-    if not value:
-        return 10
-    if re.match(r"^\s*0[xX][0-9a-fA-F]+\s*$", value):
-        return 16
-    if re.match(r"^0[0-7]+", value):
-        return 8
-    return 10

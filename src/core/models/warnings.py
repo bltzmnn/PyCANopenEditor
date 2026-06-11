@@ -22,3 +22,7 @@ class Warnings:
     @classmethod
     def clear(cls) -> None:
         cls.warning_list.clear()
+
+    @classmethod
+    def get_warnings(cls) -> list[str]:
+        return list(cls.warning_list)

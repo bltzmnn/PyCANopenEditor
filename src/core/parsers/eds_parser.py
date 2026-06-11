@@ -168,9 +168,16 @@ class EDSParser:
             self._apply_implicit_pdo()
 
     def _parse_fileinfo_datetime(self) -> None:
+        fi_data = self.eds.eds.get("FileInfo", {})
         try:
-            if "CreationTime" in self.eds.eds.get("FileInfo", {}) and "CreationDate" in self.eds.eds.get("FileInfo", {}):
-                dt_str = self.eds.eds["FileInfo"]["CreationTime"].replace(" ", "") + " " + self.eds.eds["FileInfo"]["CreationDate"]
+            if "CreationTime" in fi_data and "CreationDate" in fi_data:
+                self.eds.fi.CreationDateTime = (
+                    fi_data["CreationTime"].strip() + " " + fi_data["CreationDate"]
+                )
+            if "ModificationTime" in fi_data and "ModificationDate" in fi_data:
+                self.eds.fi.ModificationDateTime = (
+                    fi_data["ModificationTime"].strip() + " " + fi_data["ModificationDate"]
+                )
         except (ValueError, KeyError):
             pass
 
@@ -426,12 +433,16 @@ class EDSParser:
         od = self.eds.ods[index]
 
         if not od.Containssubindex(1) and (self.eds.di.CompactPDO & 0x01) == 0:
+            if index < 0x1800:
+                cob_default = "$NODEID+0x200"
+            else:
+                cob_default = "$NODEID+0x180"
             sub = ODentry(
                 parameter_name="COB-ID", datatype=DataType.UNSIGNED32,
-                defaultvalue="$NODEID + 0x180", accesstype=AccessType.RW,
+                defaultvalue=cob_default, accesstype=AccessType.RW,
                 pdo_type=PDOMappingType.NO, parent=od,
             )
-            od.subobjects[5] = sub
+            od.subobjects[1] = sub
 
         if not od.Containssubindex(2) and (self.eds.di.CompactPDO & 0x02) == 0:
             sub = ODentry(
@@ -772,7 +783,7 @@ def _get_eds_fields(section, ft: Filetype) -> list[tuple[str, object]]:
     for attr_name in dir(section):
         if attr_name.startswith("_"):
             continue
-        if attr_name in ("edssection", "infoheader", "parse", "get_field"):
+        if attr_name in ("edssection", "infoheader", "parse", "get_field", "objectlist", "countmsg"):
             continue
         try:
             value = getattr(section, attr_name)

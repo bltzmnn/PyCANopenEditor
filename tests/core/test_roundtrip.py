@@ -5,7 +5,7 @@
 
 仓库自带样本：
 - `tests/core/test_data/minimal.eds` —— 用于 EDS 基础 round-trip
-- `Tests/minimal_project.xdd`（可选） —— 用于 XDD round-trip
+- `eds/minimal_project.xdd`（可选） —— 用于 XDD round-trip
 """
 import os
 import tempfile
@@ -19,7 +19,7 @@ from src.core.parsers.xdd_handler import XDDHandler
 
 
 REPO_ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
-MINIMAL_XDD = os.path.join(REPO_ROOT, "Tests", "minimal_project.xdd")
+MINIMAL_XDD = os.path.join(REPO_ROOT, "eds", "minimal_project.xdd")
 
 
 class TestEDSRoundTrip:

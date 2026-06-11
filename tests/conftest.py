@@ -3,8 +3,8 @@
 外部测试数据约定：
     需要真实 EDS 文件做兼容性测试时，将目录路径写入环境变量
     `PYCANOPEN_TEST_EDS_DIR`，fixture 会自动扫描该目录下所有
-    `.eds` 文件。未设置环境变量时，相关测试会通过 `pytest.skip`
-    自动跳过，因此 CI 和公开仓库不会失败。
+    `.eds` 文件。未设置环境变量时，默认使用仓库根目录下的 `eds/`
+    文件夹（包含 13 个 EDS + 4 个 XDD 样本）。
 """
 import os
 import sys
@@ -13,8 +13,13 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-
 EDS_DIR_ENV = "PYCANOPEN_TEST_EDS_DIR"
+
+_REPO_ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
+_DEFAULT_EDS_DIR = os.path.join(_REPO_ROOT, "eds")
+
+if not os.environ.get(EDS_DIR_ENV, "").strip():
+    os.environ[EDS_DIR_ENV] = _DEFAULT_EDS_DIR
 
 
 def _resolve_eds_dir() -> str | None:
@@ -33,6 +38,27 @@ def _collect_eds_files(root: str) -> list[str]:
             if name.lower().endswith(".eds"):
                 result.append(os.path.join(dirpath, name))
     return sorted(result)
+
+
+def _pick_richest_eds(files: list[str]) -> str | None:
+    """从 EDS 文件列表中选出 OD 条目最多的一个（PDO 测试需要）。"""
+    if not files:
+        return None
+    best = files[0]
+    best_count = 0
+    for path in files:
+        try:
+            from src.core.models.eds import EDS
+            from src.core.parsers.eds_parser import EDSParser
+            eds = EDS()
+            EDSParser(eds).loadfile(path)
+            count = len(eds.ods)
+            if count > best_count:
+                best_count = count
+                best = path
+        except Exception:
+            continue
+    return best
 
 
 @pytest.fixture(scope="session")
@@ -58,14 +84,14 @@ def test_eds_files() -> list[str]:
 
 @pytest.fixture
 def eds_path() -> str:
-    """返回单个示例 EDS 文件路径；未设置时跳过。
-
-    优先取 `test_eds_files` 列表中的第一个文件。
-    """
+    """返回 OD 条目最丰富的 EDS 文件路径，用于 GUI/集成测试。"""
     p = _resolve_eds_dir()
     if not p:
         pytest.skip(f"环境变量 {EDS_DIR_ENV} 未设置或路径无效")
     files = _collect_eds_files(p)
     if not files:
         pytest.skip(f"{EDS_DIR_ENV}={p} 下未找到 .eds 文件")
-    return files[0]
+    richest = _pick_richest_eds(files)
+    if not richest:
+        pytest.skip("无法解析任何 EDS 文件")
+    return richest

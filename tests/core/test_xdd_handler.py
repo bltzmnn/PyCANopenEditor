@@ -7,8 +7,8 @@ from src.core.models.datatypes import DataType, ObjectType, AccessType, PDOMappi
 from src.core.parsers.xdd_handler import XDDHandler
 
 
-CANOPEN_ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
-MINIMAL_XDD = os.path.join(CANOPEN_ROOT, "Tests", "minimal_project.xdd")
+CANOPEN_ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
+MINIMAL_XDD = os.path.join(CANOPEN_ROOT, "eds", "minimal_project.xdd")
 
 
 class TestXDDRead:

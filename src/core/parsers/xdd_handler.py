@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import os
-from datetime import datetime
 from typing import Optional
 
 from lxml import etree
@@ -135,22 +134,22 @@ class XDDHandler:
             if tag == "ISO15745ProfileContainer":
                 ns = _detect_namespace(container)
                 if ns:
-                    eds = self._parse_v11(container, ns, filename)
+                    eds_device = self._parse_v11(container, ns, filename)
                 else:
-                    eds = self._parse_v10(container, filename)
-                if eds is not None:
-                    results.append(eds)
+                    eds_device = self._parse_v10(container, filename)
+                if eds_device is not None:
+                    results.append(eds_device)
 
         # 如果根元素本身就是 ISO15745ProfileContainer，则作为单设备处理
         root_tag = _local_tag(root.tag)
         if root_tag == "ISO15745ProfileContainer" and not results:
             ns = _detect_namespace(root)
             if ns:
-                eds = self._parse_v11(root, ns, filename)
+                eds_device = self._parse_v11(root, ns, filename)
             else:
-                eds = self._parse_v10(root, filename)
-            if eds is not None:
-                results.append(eds)
+                eds_device = self._parse_v10(root, filename)
+            if eds_device is not None:
+                results.append(eds_device)
 
         return results
 
@@ -265,7 +264,7 @@ class XDDHandler:
             if tag == "DeviceIdentity":
                 self._parse_device_identity_v10(eds, elem)
             elif tag == "CANopenObject":
-                self._parse_canopen_object(eds, elem, None)
+                self._parse_canopen_object(eds, elem)
 
         return eds
 

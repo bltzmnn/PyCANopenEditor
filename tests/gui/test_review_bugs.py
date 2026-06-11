@@ -135,42 +135,54 @@ class TestBug3SaveFileXDC:
 
 
 class TestBug4AddMappingWithNodeID:
-    def test_add_mapping_preserves_nodeid_default(self, qapp, eds_path):
+    def test_add_mapping_preserves_nodeid_default(self, qapp):
         """Bug 4: add_mapping 中 defaultvalue 含 $NODEID 时不应崩溃"""
         from src.core.models.eds import EDS
         from src.core.models.od_entry import ODentry
         from src.core.models.datatypes import DataType, AccessType, ObjectType, PDOMappingType
         from src.gui.viewmodels.pdo_vm import PDOViewModel
 
-        eds = _load(eds_path)
+        eds = EDS()
 
-        # 找一个有 $NODEID 的 PDO 映射 OD
-        has_nodeid = False
-        for idx in range(0x1A00, 0x1C00):
-            if idx in eds.ods:
-                mapping_od = eds.ods[idx]
-                sub0 = mapping_od.subobjects.get(0)
-                if sub0 and sub0.defaultvalue not in ("0", "0x00"):
-                    for sub_idx in sorted(mapping_od.subobjects.keys()):
-                        if sub_idx == 0:
-                            continue
-                        sub = mapping_od.subobjects.get(sub_idx)
-                        if sub and "$NODEID" in sub.defaultvalue.upper():
-                            has_nodeid = True
-                            break
-                if has_nodeid:
-                    break
+        # 构造一个含 $NODEID 的 PDO 通信参数
+        od_1800 = ODentry(
+            parameter_name="TPDO communication parameter",
+            index=0x1800, objecttype=ObjectType.RECORD,
+        )
+        od_1800.subobjects[0] = ODentry(
+            defaultvalue="0x05", parent=od_1800,
+        )
+        od_1800.subobjects[1] = ODentry(
+            defaultvalue="$NODEID+0x180", parent=od_1800,
+        )
+        od_1800.subobjects[2] = ODentry(
+            defaultvalue="254", parent=od_1800,
+        )
+        eds.ods[0x1800] = od_1800
 
-        if not has_nodeid:
-            pytest.skip("测试 EDS 中无含 $NODEID 的映射条目")
+        # 构造映射参数
+        od_1a00 = ODentry(
+            parameter_name="TPDO mapping",
+            index=0x1A00, objecttype=ObjectType.RECORD,
+        )
+        od_1a00.subobjects[0] = ODentry(
+            defaultvalue="0x01", parent=od_1a00,
+        )
+        od_1a00.subobjects[1] = ODentry(
+            defaultvalue="0x10000020", parent=od_1a00,
+        )
+        eds.ods[0x1A00] = od_1a00
 
-        # 即使有 $NODEID，rebuild 不应崩溃
+        # 被映射的对象
+        eds.ods[0x1000] = ODentry(
+            parameter_name="Device type", index=0x1000,
+            datatype=DataType.UNSIGNED32, defaultvalue="0",
+            accesstype=AccessType.RO, pdo_type=PDOMappingType.TPDO,
+        )
+
+        # rebuild 不应崩溃
         pdo_vm = PDOViewModel(eds)
-        # add_mapping 内部用 int(s.defaultvalue, 0)，对 $NODEID+0x... 会抛 ValueError
-        # 但 add_mapping 不直接解析现有 sub 的 defaultvalue
-        # 问题出在 add_mapping 的 num_mapped 计算中
-        # 让我直接测试那个代码路径
         try:
             pdo_vm.rebuild()
         except ValueError:
-            pytest.fail("PDOViewModel.rebuild() 在含 $NODEID 的映射上不应崩溃")
+            pytest.fail("PDOViewModel.rebuild() 在含 $NODEID 的通信参数上不应崩溃")

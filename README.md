@@ -277,35 +277,30 @@ CANopenNode 参考设备、达妙电机驱动等不同厂商/行业，用于兼�
 # 安装开发依赖
 pip install -e ".[dev]"
 
-# 运行全部测试
+# 运行全部测试（383 个，自动使用 eds/ 目录作为测试数据）
 pytest tests/
 
-# 仅运行核心库测试（不需要显示服务器）
+# 仅运行核心库测试
 pytest tests/core/
 
-# 运行 GUI 测试（需要 xvfb-run 或显示服务器）
-xvfb-run -a pytest tests/gui/
+# 运行 GUI 测试（本机有 X11 可直接跑，无显示器环境用 xvfb-run）
+pytest tests/gui/
 
 # 运行 CLI 测试
 pytest tests/cli/
 ```
 
-涉及外部 EDS 样本的测试（`test_external_eds_files_roundtrip`、
-`test_cli_eds_to_*_all_files` 等）通过环境变量 `PYCANOPEN_TEST_EDS_DIR`
-读取样本目录。推荐使用仓库自带的 `eds/` 目录：
+`PYCANOPEN_TEST_EDS_DIR` 环境变量用于指定外部 EDS 样本目录。**未设置时自动使用仓库
+自带的 `eds/` 目录**（包含 13 个 EDS + 4 个 XDD 样本）。指向其他目录可覆盖：
 
 ```bash
-# 使用仓库附带的 13 EDS + 3 XDD 样本
-export PYCANOPEN_TEST_EDS_DIR=eds
+# 使用仓库附带的 13 EDS + 4 XDD 样本（默认行为，无需手动设置）
 pytest tests/
 
-# 也可指向你自己的样本目录
+# 使用你自己的样本目录
 export PYCANOPEN_TEST_EDS_DIR=/path/to/your/eds-samples
 pytest tests/
 ```
-
-未设置时上述测试会自动 `skip`，不影响 CI 跑通。仓库自带的最小
-样本 `tests/core/test_data/minimal.eds` 不需要该环境变量。
 
 ### 添加新导出器
 

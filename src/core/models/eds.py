@@ -1,7 +1,6 @@
 """CANopen 设备描述顶层类"""
 from __future__ import annotations
 
-import re
 from typing import Callable, Optional
 
 from .datatypes import AccessType, DataType, ObjectType, PDOMappingType

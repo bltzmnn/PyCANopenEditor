@@ -11,16 +11,15 @@ they contain no internal references.
 ## Quick start
 
 ```bash
-# Run the full test suite against the bundled samples
-PYCANOPEN_TEST_EDS_DIR=eds pytest tests/
+# Run the full test suite against the bundled samples (auto-defaults to eds/)
+pytest tests/
 
 # Point at your own directory of EDS files
 PYCANOPEN_TEST_EDS_DIR=/path/to/your/eds pytest tests/
 ```
 
-Without the `PYCANOPEN_TEST_EDS_DIR` environment variable the tests that need
-external EDS samples are skipped automatically (the repository's own
-`tests/core/test_data/minimal.eds` is always used for core round-trip tests).
+The test suite automatically uses this `eds/` directory when
+`PYCANOPEN_TEST_EDS_DIR` is not set, so no manual configuration is needed.
 
 ## File inventory
 
@@ -43,8 +42,9 @@ external EDS samples are skipped automatically (the repository's own
 | `faulhaber_605_3150_68b.eds` | EDS | [KITmedical/kacanopen](https://github.com/KITmedical/kacanopen_old) | Faulhaber MCDC motor |
 | `faulhaber_605_3150_71a.eds` | EDS | [KITmedical/kacanopen](https://github.com/KITmedical/kacanopen_old) | Faulhaber Sinus2 motor |
 | `systec_iox1.eds` | EDS | [KITmedical/kacanopen](https://github.com/KITmedical/kacanopen_old) | Systec sysWORXX IO-X1 (16DI/8DO) |
+| `minimal_project.xdd` | XDD | [CANopenNode/CANopenEditor](https://github.com/CANopenNode/CANopenEditor) | minimal test device (XDD v1.1) |
 
-Total: **14 EDS + 3 XDD = 17 files**.
+Total: **14 EDS + 4 XDD = 18 files**.
 
 ## Coverage
 
@@ -57,6 +57,7 @@ Total: **14 EDS + 3 XDD = 17 files**.
 * **Servo / stepper motors** (Faulhaber ×3, DM-driver) — 4 files
 * **Discrete I/O** (Systec) — 1 file
 * **XDD XML variants** for the same basic / motor data — 3 files
+* **XDD test device** (CANopenEditor minimal project) — 1 file
 
 ## Source projects
 
@@ -68,6 +69,7 @@ Total: **14 EDS + 3 XDD = 17 files**.
 | [dmBots/dm_canopen](https://github.com/dmBots/dm_canopen) | — | DM motor driver firmware project |
 | [grafoteka/kacanopen](https://github.com/grafoteka/kacanopen) | — | Fork of KaCanOpen with the full CiA profile library |
 | [KITmedical/kacanopen_old](https://github.com/KITmedical/kacanopen_old) | BSD / LGPL | Robotics stack bundled with vendor EDS samples (Faulhaber, Systec) |
+| [CANopenNode/CANopenEditor](https://github.com/CANopenNode/CANopenEditor) | GPL | C# CANopen editor; provides the minimal XDD test device |
 
 EDS files are technical documentation under their respective vendors'
 copyright and are included here for **testing and interoperability purposes

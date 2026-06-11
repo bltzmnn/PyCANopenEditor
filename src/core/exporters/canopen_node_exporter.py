@@ -902,7 +902,7 @@ class CanOpenNodeExporter(IFileExporter):
             if od.prop.CO_disabled:
                 continue
 
-            count = od.subobjects.Count if hasattr(od.subobjects, 'Count') else len(od.subobjects)
+            count = len(od.subobjects)
 
             lines.append(f"/*0x{od.index:04X}*/ const CO_OD_entryRecord_t OD_record{od.index:04X}[{count}] = {{\n")
 

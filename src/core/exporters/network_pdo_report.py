@@ -1,9 +1,6 @@
 """Network PDO 报告导出器，对应 C# NetworkPDOreport"""
 from __future__ import annotations
 
-import os
-from typing import Optional
-
 from ..models.datatypes import DataType, ObjectType
 from ..models.eds import EDS
 from ..models.od_entry import ODentry, _convert_to_byte, _convert_to_uint16, _convert_to_uint32

@@ -1,9 +1,6 @@
 """HTML 文档导出器，对应 C# DocumentationGenHtml"""
 from __future__ import annotations
 
-import os
-from typing import Optional
-
 from ..models.datatypes import DataType, ObjectType
 from ..models.eds import EDS
 from ..models.od_entry import ODentry
