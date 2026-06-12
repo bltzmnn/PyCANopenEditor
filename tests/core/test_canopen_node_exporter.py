@@ -1,15 +1,9 @@
-"""CANopenNode 导出器单元测试"""
+"""CANopenNode V4 导出器单元测试"""
 import os
 import tempfile
 
 import pytest
 
-from src.core.exporters.canopen_node_exporter import (
-    CanOpenNodeExporter,
-    format_value_with_datatype,
-    get_flags,
-    make_cname,
-)
 from src.core.exporters.canopen_node_exporter_v4 import (
     CanOpenNodeExporterV4,
     DataProperties,
@@ -30,32 +24,6 @@ from src.core.models.eds import EDS
 from src.core.models.od_entry import ODentry
 
 
-class TestMakeCname:
-    def test_simple_name(self):
-        od = ODentry(parameter_name="Device type", index=0x1000)
-        result = make_cname("Device type", od)
-        assert result == "deviceType"
-
-    def test_empty_name(self):
-        od = ODentry(index=0x1000)
-        assert make_cname("", od) == ""
-
-    def test_hyphen_name(self):
-        od = ODentry(parameter_name="COB-ID", index=0x1000)
-        result = make_cname("COB-ID", od)
-        assert "COB" in result
-
-    def test_pdo_name_replacement(self):
-        od = ODentry(parameter_name="RPDO communication parameter", index=0x1400)
-        result = make_cname("RPDO communication parameter", od)
-        assert result == "RPDOCommunicationParameter"
-
-    def test_identity_name(self):
-        od = ODentry(parameter_name="Identity object", index=0x1018)
-        result = make_cname("Identity object", od)
-        assert result == "identity"
-
-
 class TestMakeCnameV4:
     def test_simple_name(self):
         assert make_cname_v4("Device type") == "deviceType"
@@ -73,80 +41,6 @@ class TestMakeCnameV4:
     def test_camel_case(self):
         result = make_cname_v4("vendor ID")
         assert "vendor" in result
-
-
-class TestFormatValue:
-    def test_unsigned8(self):
-        result = format_value_with_datatype("0x05", DataType.UNSIGNED8)
-        assert "0x5" in result
-
-    def test_unsigned16(self):
-        result = format_value_with_datatype("0x1234", DataType.UNSIGNED16)
-        assert "1234" in result
-
-    def test_unsigned32(self):
-        result = format_value_with_datatype("0x12345678", DataType.UNSIGNED32)
-        assert "12345678" in result
-
-    def test_visible_string(self):
-        result = format_value_with_datatype("hello", DataType.VISIBLE_STRING)
-        assert result.startswith("{")
-        assert result.endswith("}")
-
-    def test_empty_default(self):
-        result = format_value_with_datatype("", DataType.UNSIGNED8)
-        assert result != ""
-
-    def test_octet_string(self):
-        result = format_value_with_datatype("01 02 03", DataType.OCTET_STRING)
-        assert "0x01" in result
-        assert "0x02" in result
-
-
-class TestGetFlags:
-    def test_var_rom_ro(self):
-        od = ODentry(
-            parameter_name="test",
-            index=0x1000,
-            datatype=DataType.UNSIGNED32,
-            accesstype=AccessType.RO,
-        )
-        od.prop.CO_storageGroup = "ROM"
-        flags = get_flags(od)
-        assert flags & 0x01  # ROM
-        assert flags & 0x04  # SDO read
-
-    def test_var_ram_rw(self):
-        od = ODentry(
-            parameter_name="test",
-            index=0x1000,
-            datatype=DataType.UNSIGNED32,
-            accesstype=AccessType.RW,
-        )
-        od.prop.CO_storageGroup = "RAM"
-        flags = get_flags(od)
-        assert flags & 0x02  # RAM
-        assert flags & 0x04  # SDO read
-        assert flags & 0x08  # SDO write
-
-    def test_record_returns_zero(self):
-        od = ODentry(
-            parameter_name="test",
-            index=0x1018,
-            objecttype=ObjectType.RECORD,
-        )
-        assert get_flags(od) == 0
-
-    def test_multibyte_flag(self):
-        od = ODentry(
-            parameter_name="test",
-            index=0x1000,
-            datatype=DataType.UNSIGNED32,
-            accesstype=AccessType.RO,
-        )
-        od.prop.CO_storageGroup = "ROM"
-        flags = get_flags(od)
-        assert flags & 0x80  # multibyte
 
 
 class TestGetDataProperties:
@@ -327,104 +221,6 @@ def _make_minimal_eds() -> EDS:
     return eds
 
 
-class TestLegacyExporter:
-    def test_export_produces_files(self):
-        eds = _make_minimal_eds()
-        exporter = CanOpenNodeExporter()
-        with tempfile.TemporaryDirectory() as tmpdir:
-            filepath = os.path.join(tmpdir, "CO_OD")
-            exporter._export(filepath, eds)
-            assert os.path.exists(os.path.join(tmpdir, "CO_OD.h"))
-            assert os.path.exists(os.path.join(tmpdir, "CO_OD.c"))
-
-    def test_h_file_contains_header_guard(self):
-        eds = _make_minimal_eds()
-        exporter = CanOpenNodeExporter()
-        with tempfile.TemporaryDirectory() as tmpdir:
-            filepath = os.path.join(tmpdir, "CO_OD")
-            exporter._export(filepath, eds)
-            with open(os.path.join(tmpdir, "CO_OD.h")) as f:
-                content = f.read()
-            assert "#ifndef CO_OD_H_" in content
-            assert "#define CO_OD_H_" in content
-            assert "#endif" in content
-
-    def test_h_file_contains_data_types(self):
-        eds = _make_minimal_eds()
-        exporter = CanOpenNodeExporter()
-        with tempfile.TemporaryDirectory() as tmpdir:
-            filepath = os.path.join(tmpdir, "CO_OD")
-            exporter._export(filepath, eds)
-            with open(os.path.join(tmpdir, "CO_OD.h")) as f:
-                content = f.read()
-            assert "typedef uint8_t      UNSIGNED8" in content
-            assert "typedef uint32_t     UNSIGNED32" in content
-
-    def test_h_file_contains_features(self):
-        eds = _make_minimal_eds()
-        exporter = CanOpenNodeExporter()
-        with tempfile.TemporaryDirectory() as tmpdir:
-            filepath = os.path.join(tmpdir, "CO_OD")
-            exporter._export(filepath, eds)
-            with open(os.path.join(tmpdir, "CO_OD.h")) as f:
-                content = f.read()
-            assert "CO_NO_RPDO" in content
-            assert "CO_NO_TPDO" in content
-
-    def test_h_file_contains_record_struct(self):
-        eds = _make_minimal_eds()
-        exporter = CanOpenNodeExporter()
-        with tempfile.TemporaryDirectory() as tmpdir:
-            filepath = os.path.join(tmpdir, "CO_OD")
-            exporter._export(filepath, eds)
-            with open(os.path.join(tmpdir, "CO_OD.h")) as f:
-                content = f.read()
-            assert "typedef struct" in content
-            assert "OD_identity_t" in content
-
-    def test_h_file_contains_od_defines(self):
-        eds = _make_minimal_eds()
-        exporter = CanOpenNodeExporter()
-        with tempfile.TemporaryDirectory() as tmpdir:
-            filepath = os.path.join(tmpdir, "CO_OD")
-            exporter._export(filepath, eds)
-            with open(os.path.join(tmpdir, "CO_OD.h")) as f:
-                content = f.read()
-            assert "OD_1000" in content
-            assert "0x1000" in content
-
-    def test_c_file_contains_includes(self):
-        eds = _make_minimal_eds()
-        exporter = CanOpenNodeExporter()
-        with tempfile.TemporaryDirectory() as tmpdir:
-            filepath = os.path.join(tmpdir, "CO_OD")
-            exporter._export(filepath, eds)
-            with open(os.path.join(tmpdir, "CO_OD.c")) as f:
-                content = f.read()
-            assert 'CO_driver.h' in content
-            assert 'CO_OD.h' in content
-
-    def test_c_file_contains_od_array(self):
-        eds = _make_minimal_eds()
-        exporter = CanOpenNodeExporter()
-        with tempfile.TemporaryDirectory() as tmpdir:
-            filepath = os.path.join(tmpdir, "CO_OD")
-            exporter._export(filepath, eds)
-            with open(os.path.join(tmpdir, "CO_OD.c")) as f:
-                content = f.read()
-            assert "CO_OD[CO_OD_NoOfElements]" in content
-
-    def test_c_file_contains_record_types(self):
-        eds = _make_minimal_eds()
-        exporter = CanOpenNodeExporter()
-        with tempfile.TemporaryDirectory() as tmpdir:
-            filepath = os.path.join(tmpdir, "CO_OD")
-            exporter._export(filepath, eds)
-            with open(os.path.join(tmpdir, "CO_OD.c")) as f:
-                content = f.read()
-            assert "OD_record1018" in content
-
-
 class TestV4Exporter:
     def test_export_produces_files(self):
         eds = _make_minimal_eds()
@@ -511,12 +307,6 @@ class TestV4Exporter:
 
 
 class TestExporterRegistration:
-    def test_legacy_registered(self):
-        from src.core.exporters.exporter_factory import Filetypes
-        exporters = Filetypes.find_by_extension(".h")
-        descriptions = [e.description for e in exporters]
-        assert "CanOpenNode" in descriptions
-
     def test_v4_registered(self):
         from src.core.exporters.exporter_factory import Filetypes
         exporters = Filetypes.find_by_extension(".h")
@@ -525,6 +315,6 @@ class TestExporterRegistration:
 
     def test_find_by_description(self):
         from src.core.exporters.exporter_factory import Filetypes
-        result = Filetypes.find_by_description("CanOpenNode")
+        result = Filetypes.find_by_description("CanOpenNodeV4")
         assert result is not None
-        assert result.description == "CanOpenNode"
+        assert result.description == "CanOpenNodeV4"

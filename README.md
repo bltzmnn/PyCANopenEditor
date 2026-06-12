@@ -76,8 +76,7 @@ pycanopen --list-exporters
 | CanOpenXDCv1.1 | `.xdc` | 含 actual value 和 commissioning |
 | CanOpen Network XDD v1.1 | `.nxdd` | 多设备网络描述 |
 | CanOpen Network XDC v1.1 | `.nxdc` | 多设备网络配置 |
-| CanOpenNode (Legacy V1-3) | `.h` / `.c` | CANopenNode C 源码（旧版） |
-| CanOpenNodeV4 | `.h` / `.c` | CANopenNode V4 C 源码（推荐） |
+| CanOpenNodeV4 | `.h` / `.c` | CANopenNode V4 C 源码 |
 | Documentation HTML | `.html` | HTML 文档 |
 | Documentation Markup | `.md` | Markdown 文档 |
 | Network PDO Report | `.html` | 网络 PDO 映射报告 |
@@ -159,9 +158,6 @@ pycanopen --infile device.xdd --outfile output.eds
 # EDS → CANopenNode V4 C 源码（生成 OD.h 和 OD.c）
 pycanopen --type CanOpenNodeV4 --infile device.eds --outfile OD.h
 
-# EDS → CANopenNode V1 C 源码（旧版格式）
-pycanopen --type CanOpenNode --infile device.eds --outfile OD.h
-
 # XDD → XDC（含 actual value）
 pycanopen --type CanOpenXDCv1.1 --infile device.xdd --outfile output.xdc
 
@@ -209,7 +205,7 @@ PyCANopenEditor/
 │   ├── DS301_profile.xpd
 │   ├── DS401_profile.xpd
 │   └── DSP302-NMTMaster.xpd
-├── eds/                       # 真实 EDS/XDD 样本（13 EDS + 3 XDD）
+├── eds/                       # 真实 EDS/XDD 样本（14 EDS + 4 XDD）
 │   ├── SOURCES.md             #   文件来源与覆盖矩阵
 │   ├── canopennode_basic_device.eds
 │   ├── dm_motor_slave.eds
@@ -234,7 +230,6 @@ PyCANopenEditor 是 [CANopenEditor](https://github.com/CANopenNode/CANopenEditor
 | `eds.cs` / `EDS` | `core/models/eds.py` |
 | `CanOpenEDS.cs` | `core/parsers/eds_parser.py` |
 | `CanOpenXDD_1_1.cs` | `core/parsers/xdd_handler.py` |
-| `CanOpenNodeExporter.cs` | `core/exporters/canopen_node_exporter.py` |
 | `CanOpenNodeExporter_V4.cs` | `core/exporters/canopen_node_exporter_v4.py` |
 | `DocumentationGenHtml.cs` | `core/exporters/documentation_gen_html.py` |
 | `DocumentationGenMarkup.cs` | `core/exporters/documentation_gen_markup.py` |
@@ -259,10 +254,11 @@ PyCANopenEditor 是 [CANopenEditor](https://github.com/CANopenNode/CANopenEditor
 - XDD/XDC round-trip 保留 OD 条目、属性、访问类型
 - XDD → EDS → XDD 跨格式 round-trip
 - CANopenNode V4 C 源码输出与 C# 版本逐字段比对通过
+- V4 导出的所有 14 个 EDS 样本均可与 CANopenNode V4 协议栈编译通过
 - Network XDD/XDC round-trip 保留 NodeID/NodeName/Baudrate
 - Protobuf 二进制/JSON round-trip 通过
 
-`eds/` 目录下附带 **13 个真实 EDS + 3 个 XDD** 样本文件，覆盖
+`eds/` 目录下附带 **14 个真实 EDS + 4 个 XDD** 样本文件，覆盖
 CiA 401/402/406 标准 profile、Systec 工业 I/O、Faulhaber 伺服电机、
 CANopenNode 参考设备、达妙电机驱动等不同厂商/行业，用于兼容性
 测试。完整文件清单与来源见 `eds/SOURCES.md`。
@@ -291,10 +287,10 @@ pytest tests/cli/
 ```
 
 `PYCANOPEN_TEST_EDS_DIR` 环境变量用于指定外部 EDS 样本目录。**未设置时自动使用仓库
-自带的 `eds/` 目录**（包含 13 个 EDS + 4 个 XDD 样本）。指向其他目录可覆盖：
+自带的 `eds/` 目录**（包含 14 个 EDS + 4 个 XDD 样本）。指向其他目录可覆盖：
 
 ```bash
-# 使用仓库附带的 13 EDS + 4 XDD 样本（默认行为，无需手动设置）
+# 使用仓库附带的 14 EDS + 4 XDD 样本（默认行为，无需手动设置）
 pytest tests/
 
 # 使用你自己的样本目录

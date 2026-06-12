@@ -56,10 +56,19 @@ def extract_od_list(content: str) -> list[tuple[str, str, str]]:
 
 
 def extract_cnt_arr(content: str) -> dict[str, str]:
-    """提取 OD_CNT_ARR_* 定义"""
+    """提取 OD_CNT_ARR_* 定义（跳过 #ifndef 保护的 fallback 定义）"""
     result = {}
-    for m in re.finditer(r'#define\s+(OD_CNT_ARR_\w+)\s+(\d+)', content):
-        result[m.group(1)] = m.group(2)
+    lines = content.split("\n")
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
+        if line.startswith("#ifndef") and "CNT_ARR_" in line:
+            i += 3
+            continue
+        m = re.match(r'#define\s+(OD_CNT_ARR_\w+)\s+(\d+)', line)
+        if m:
+            result[m.group(1)] = m.group(2)
+        i += 1
     return result
 
 
@@ -96,10 +105,19 @@ def extract_storage_structs(content: str) -> dict[str, list[str]]:
 
 
 def extract_entry_shortcuts(content: str) -> dict[str, str]:
-    """提取 OD_ENTRY_H* 定义"""
+    """提取 OD_ENTRY_H* 定义（跳过 #ifndef 保护的 fallback 定义）"""
     result = {}
-    for m in re.finditer(r'#define\s+(OD_ENTRY_\w+)\s+([^\\\n]+)', content):
-        result[m.group(1)] = m.group(2).strip()
+    lines = content.split("\n")
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
+        if line.startswith("#ifndef") and "ENTRY_H" in line:
+            i += 3
+            continue
+        m = re.match(r'#define\s+(OD_ENTRY_\w+)\s+([^\\\n]+)', line)
+        if m:
+            result[m.group(1)] = m.group(2).strip()
+        i += 1
     return result
 
 

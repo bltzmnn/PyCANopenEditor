@@ -1,6 +1,5 @@
 """导出器包"""
 from .exporter_factory import ExporterDescriptor, ExporterFlags, Filetypes, IFileExporter
-from .canopen_node_exporter import CanOpenNodeExporter
 from .canopen_node_exporter_v4 import CanOpenNodeExporterV4
 from .documentation_gen_markup import DocumentationGenMarkup
 from .documentation_gen_html import DocumentationGenHtml
@@ -8,7 +7,6 @@ from .network_pdo_report import NetworkPDOreport
 from .network_xdd_exporter import NetworkXDDExporter
 from .xdd_exporter import XDDExporter
 
-Filetypes.register(CanOpenNodeExporter)
 Filetypes.register(CanOpenNodeExporterV4)
 Filetypes.register(DocumentationGenMarkup)
 Filetypes.register(DocumentationGenHtml)
@@ -29,7 +27,6 @@ __all__ = [
     "ExporterFlags",
     "Filetypes",
     "IFileExporter",
-    "CanOpenNodeExporter",
     "CanOpenNodeExporterV4",
     "DocumentationGenMarkup",
     "DocumentationGenHtml",

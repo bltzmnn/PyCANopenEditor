@@ -18,14 +18,6 @@ MINIMAL_XDD = os.path.join(REPO_ROOT, "eds", "minimal_project.xdd")
 
 @pytest.mark.skipif(not os.path.exists(MINIMAL_XDD), reason="minimal_project.xdd not found")
 class TestCLI:
-    def test_xdd_to_canopen_node_legacy(self, tmp_path):
-        """对应 C# XddToCanOpenNodeLegacy"""
-        out_base = str(tmp_path / "Legacy")
-        ret = main(["--type", "CanOpenNode", "--infile", MINIMAL_XDD, "--outfile", out_base])
-        assert ret == 0
-        assert os.path.exists(out_base + ".h")
-        assert os.path.exists(out_base + ".c")
-
     def test_xdd_to_canopen_node_v4(self, tmp_path):
         """对应 C# XddToCanOpenNodeV4"""
         out_base = str(tmp_path / "V4")
@@ -41,11 +33,12 @@ class TestCLI:
         assert ret == 0
         assert os.path.exists(out_file)
 
-    def test_multiple_exporter_by_extension_fails_without_type(self, tmp_path):
-        """对应 C# MultipleExporterByExtensionPossibleWithoutType — .html 对应多个导出器，不指定 --type 应失败"""
+    def test_multiple_exporter_by_extension_defaults_without_type(self, tmp_path):
+        """对应 C# MultipleExporterByExtensionPossibleWithoutType — .html 对应多个导出器，不指定 --type 时自动选择"""
         out_file = str(tmp_path / "file.html")
         ret = main(["--infile", MINIMAL_XDD, "--outfile", out_file])
-        assert ret == 1
+        assert ret == 0
+        assert os.path.exists(out_file)
 
     def test_multiple_exporter_by_extension_with_type(self, tmp_path):
         """对应 C# MultipleExporterByExtensionPossibleWithType — 指定 --type 后成功"""

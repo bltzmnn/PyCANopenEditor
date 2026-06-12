@@ -12,7 +12,7 @@
 # 安装（editable 模式，含开发依赖）
 pip install -e ".[dev]"
 
-# 运行全部测试（383 个，自动使用 eds/ 目录作为测试数据）
+# 运行全部测试（357 个，自动使用 eds/ 目录作为测试数据）
 pytest tests/
 
 # 仅核心库测试
@@ -27,7 +27,7 @@ pytest tests/cli/
 
 ## 环境变量
 
-- `PYCANOPEN_TEST_EDS_DIR` — 指向真实 `.eds` 文件目录，用于兼容性测试。**未设置时自动使用仓库 `eds/` 目录**（包含 13 个 EDS + 4 个 XDD 样本）。指向其他目录可覆盖。
+- `PYCANOPEN_TEST_EDS_DIR` — 指向真实 `.eds` 文件目录，用于兼容性测试。**未设置时自动使用仓库 `eds/` 目录**（包含 14 个 EDS + 4 个 XDD 样本）。指向其他目录可覆盖。
 
 ## 项目结构
 
@@ -48,7 +48,7 @@ src/
 
 - **入口点**（`pyproject.toml` 定义）：`pycanopen` → `src.cli.main:main`，`pycanopen-gui` → `src.gui.app:run_gui`
 - **导出器**通过 `exporter_factory.py` 的 `Filetypes.register()` 注册。每个导出器实现 `IFileExporter.get_exporters()`，返回 `ExporterDescriptor` 列表。
-- **C# 对应关系**：见 README.md「C# → Python 类对应表」。
+- **C 源码导出**仅支持 CANopenNode V4 格式（`CanOpenNodeExporterV4`），与 CANopenNode V4 协议栈配合使用。
 
 ## 添加新导出器
 
@@ -70,4 +70,4 @@ src/
 
 - `pip install -e .` 会把 `pycanopen-gui` 放到 `~/.local/bin`，可能需要 `export PATH="$HOME/.local/bin:$PATH"`
 - Linux GUI 依赖 `libxcb-cursor0`：`sudo apt install libxcb-cursor0`
-- 输出扩展名对应多个导出器时（如 `.xdd` → 完整版 vs 精简版），CLI 必须指定 `--type` 参数
+- 输出扩展名对应多个导出器时（如 `.xdd` → 完整版 vs 精简版），CLI 自动选择默认导出器，也可用 `--type` 指定

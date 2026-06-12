@@ -126,7 +126,6 @@ class TestExporterRegistrationFull:
     def test_canopen_node_registered(self):
         exporters = Filetypes.find_by_extension(".h")
         descriptions = [e.description for e in exporters]
-        assert "CanOpenNode" in descriptions
         assert "CanOpenNodeV4" in descriptions
 
     def test_eds_registered(self):

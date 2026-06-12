@@ -99,11 +99,10 @@ def main(argv: list[str] | None = None) -> int:
             print(f"错误: 没有支持扩展名 '{out_ext}' 的导出器", file=sys.stderr)
             return 1
         if len(matching) > 1:
-            print(f"错误: 扩展名 '{out_ext}' 对应多个导出器，请使用 --type 指定:", file=sys.stderr)
-            for exp in matching:
-                print(f"  {exp.description}")
-            return 1
-        exporter = matching[0]
+            v4 = [e for e in matching if "V4" in e.description]
+            exporter = v4[0] if v4 else matching[0]
+        else:
+            exporter = matching[0]
 
     try:
         os.makedirs(out_dir, exist_ok=True)

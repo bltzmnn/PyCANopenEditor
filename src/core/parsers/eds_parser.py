@@ -171,12 +171,12 @@ class EDSParser:
         fi_data = self.eds.eds.get("FileInfo", {})
         try:
             if "CreationTime" in fi_data and "CreationDate" in fi_data:
-                self.eds.fi.CreationDateTime = (
-                    fi_data["CreationTime"].strip() + " " + fi_data["CreationDate"]
+                self.eds.fi.CreationDateTime = _format_csharp_datetime(
+                    fi_data["CreationDate"].strip(), fi_data["CreationTime"].strip()
                 )
             if "ModificationTime" in fi_data and "ModificationDate" in fi_data:
-                self.eds.fi.ModificationDateTime = (
-                    fi_data["ModificationTime"].strip() + " " + fi_data["ModificationDate"]
+                self.eds.fi.ModificationDateTime = _format_csharp_datetime(
+                    fi_data["ModificationDate"].strip(), fi_data["ModificationTime"].strip()
                 )
         except (ValueError, KeyError):
             pass
@@ -802,3 +802,28 @@ def _get_eds_fields(section, ft: Filetype) -> list[tuple[str, object]]:
         eds_fields.append((attr_name, value))
 
     return eds_fields
+
+
+def _format_csharp_datetime(date_str: str, time_str: str) -> str:
+    """将 EDS 日期时间格式化为 C# 风格: '2024/1/1 12:00:00'"""
+    from datetime import datetime
+    date_str = date_str.strip()
+    time_str = time_str.strip()
+
+    for fmt in ("%m-%d-%Y", "%m/%d/%Y", "%Y-%m-%d", "%Y/%m/%d"):
+        try:
+            d = datetime.strptime(date_str, fmt)
+            break
+        except ValueError:
+            continue
+    else:
+        return f"{date_str} {time_str}"
+
+    for tfmt in ("%I:%M%p", "%I:%M:%S%p", "%H:%M:%S", "%H:%M"):
+        try:
+            t = datetime.strptime(time_str.upper(), tfmt)
+            return f"{d.year}/{d.month}/{d.day} {t.strftime('%H:%M:%S')}"
+        except ValueError:
+            continue
+
+    return f"{d.year}/{d.month}/{d.day} {time_str}"

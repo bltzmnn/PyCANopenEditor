@@ -668,9 +668,8 @@ class TestExporterFactory:
 
     def test_find_by_extension_h(self):
         exporters = Filetypes.find_by_extension(".h")
-        assert len(exporters) >= 2
+        assert len(exporters) >= 1
         descriptions = [e.description for e in exporters]
-        assert "CanOpenNode" in descriptions
         assert "CanOpenNodeV4" in descriptions
 
     def test_find_by_extension_xdd(self):
@@ -695,7 +694,7 @@ class TestExporterFactory:
         assert result.description == "CanOpenNodeV4"
 
     def test_find_by_description_with_spaces(self):
-        result = Filetypes.find_by_description("CanOpenNode")
+        result = Filetypes.find_by_description("CanOpenNodeV4")
         assert result is not None
 
     def test_find_by_description_not_found(self):
@@ -708,7 +707,7 @@ class TestExporterFactory:
 
     def test_get_exporters_with_flags(self):
         exporters = Filetypes.get_exporters(flags=ExporterFlags.CanOpenNode)
-        assert len(exporters) >= 2
+        assert len(exporters) >= 1
         for e in exporters:
             assert e.flags & ExporterFlags.CanOpenNode
 

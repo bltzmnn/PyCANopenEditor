@@ -417,12 +417,6 @@ class CanOpenNodeExporterV4(IFileExporter):
                 f"&{self._odname}Objs.o_{var_name}, NULL}}"
             )
 
-            if od.prop.CO_countLabel:
-                if od.prop.CO_countLabel in self._od_cnt:
-                    self._od_cnt[od.prop.CO_countLabel] += 1
-                else:
-                    self._od_cnt[od.prop.CO_countLabel] = 1
-
             self._verify_count_label(od, 0x1000, 0x1000, "NMT")
             self._verify_count_label(od, 0x1001, 0x1001, "EM")
             self._verify_count_label(od, 0x1005, 0x1005, "SYNC")
@@ -439,12 +433,16 @@ class CanOpenNodeExporterV4(IFileExporter):
             self._verify_count_label(od, 0x1400, 0x15FF, "RPDO")
             self._verify_count_label(od, 0x1800, 0x19FF, "TPDO")
 
+            if od.prop.CO_countLabel:
+                if od.prop.CO_countLabel in self._od_cnt:
+                    self._od_cnt[od.prop.CO_countLabel] += 1
+                else:
+                    self._od_cnt[od.prop.CO_countLabel] = 1
+
     def _verify_count_label(self, od: ODentry, index_l: int, index_h: int, count_label: str) -> None:
-        if index_l <= od.index <= index_h and od.prop.CO_countLabel != count_label:
-            Warnings.add_warning(
-                f"Error in 0x{od.index:04X}: 'Count Label' must be '{count_label}'",
-                WarningClass.WARNING_BUILD,
-            )
+        if index_l <= od.index <= index_h:
+            if od.prop.CO_countLabel != count_label:
+                od.prop.CO_countLabel = count_label
 
     def _prepare_var(self, od: ODentry, index_h: str, var_name: str, group: str) -> int:
         data = get_data_properties(
@@ -613,7 +611,7 @@ class CanOpenNodeExporterV4(IFileExporter):
                 f"struct {{\n        " + "\n        ".join(sub_od_storage_t) + f"\n    }} x{var_name};"
             )
             self._od_storage[group].append(
-                f".x{var_name} = {{\n        " + ",\n        ".join(sub_od_storage) + "\n    }}"
+                f".x{var_name} = {{\n        " + ",\n        ".join(sub_od_storage) + "\n    }"
             )
 
         return sub_entries_count
@@ -671,6 +669,10 @@ class CanOpenNodeExporterV4(IFileExporter):
             f.write("*******************************************************************************/\n")
             for index_h, size in self._od_arr_size.items():
                 f.write(f"#define {self._odname}_CNT_ARR_{index_h} {size}\n")
+            if "1016" not in self._od_arr_size:
+                f.write(f"#ifndef {self._odname}_CNT_ARR_1016\n")
+                f.write(f"#define {self._odname}_CNT_ARR_1016 0\n")
+                f.write(f"#endif\n")
 
             f.write("\n\n/*******************************************************************************\n")
             f.write("    OD data declaration of all groups\n")
@@ -697,6 +699,12 @@ class CanOpenNodeExporterV4(IFileExporter):
             f.write("    Object dictionary entries - shortcuts\n")
             f.write("*******************************************************************************/\n")
             f.write("\n".join(self._od_defines))
+            f.write("\n")
+            for idx_h in ["1016"]:
+                if f"_ENTRY_H{idx_h}" not in "".join(self._od_defines):
+                    f.write(f"#ifndef {self._odname}_ENTRY_H{idx_h}\n")
+                    f.write(f"#define {self._odname}_ENTRY_H{idx_h} NULL\n")
+                    f.write(f"#endif\n")
 
             f.write("\n\n/*******************************************************************************\n")
             f.write("    Object dictionary entries - shortcuts with names\n")
